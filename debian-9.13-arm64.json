@@ -1,0 +1,161 @@
+{
+  "builders": [
+    {
+      "boot_command": [
+        "e<wait>",
+        "<del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del>",
+        "<del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del>",
+        "<del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del>",
+        "<del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del>",
+        "<del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del>",
+        "<del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del>",
+        "<del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del>",
+        "<del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del>",
+        "<del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del>",
+        "<del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><del><wait>",
+        "linux /install.a64/vmlinuz ",
+        "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/{{user `preseed_path`}} ",
+        "debian-installer=en_US.UTF-8 ",
+        "auto ",
+        "locale=en_US.UTF-8 ",
+        "kbd-chooser/method=us ",
+        "keyboard-configuration/xkb-keymap=us ",
+        "netcfg/get_hostname={{ .Name }} ",
+        "netcfg/get_domain=vagrantup.com ",
+        "fb=false ",
+        "debconf/frontend=noninteractive ",
+        "console-setup/ask_detect=false ",
+        "console-keymaps-at/keymap=us ",
+        "grub-installer/bootdev=/dev/sda ",
+        "--- quiet",
+        "<enter>",
+        "initrd /install.a64/initrd.gz",
+        "<leftCtrlOn>x<leftCtrlOff>"
+      ],
+      "prlctl": [
+        [
+          "set",
+          "{{.Name}}",
+          "--adaptive-hypervisor",
+          "on"
+        ],
+        [
+          "set",
+          "{{.Name}}",
+          "--3d-accelerate",
+          "off"
+        ],
+        [
+          "set",
+          "{{.Name}}",
+          "--videosize",
+          "16"
+        ],
+        [
+          "set",
+          "{{.Name}}",
+          "--pmu-virt",
+          "on"
+        ],
+        [
+          "set",
+          "{{.Name}}",
+          "--faster-vm",
+          "on"
+        ]
+      ],
+      "boot_wait": "60s",
+      "cpus": "{{ user `cpus` }}",
+      "disk_size": "{{user `disk_size`}}",
+      "guest_os_type": "debian",
+      "http_directory": "{{user `http_directory`}}",
+      "iso_checksum": "{{user `iso_checksum`}}",
+      "iso_url": "{{user `mirror`}}/{{user `mirror_directory`}}/{{user `iso_name`}}",
+      "memory": "{{ user `memory` }}",
+      "output_directory": "{{ user `build_directory` }}/packer-{{user `template`}}-parallels",
+      "parallels_tools_flavor": "lin",
+      "parallels_tools_mode": "upload",
+      "parallels_tools_guest_path": "/root/parallels-tools-linux.iso",
+      "prlctl_version_file": "/root/parallels-tools-version.txt",
+      "shutdown_command": "echo 'vagrant' | sudo -S /sbin/shutdown -hP now",
+      "ssh_password": "vagrant",
+      "ssh_port": 22,
+      "ssh_timeout": "10000s",
+      "ssh_username": "root",
+      "type": "parallels-iso",
+      "vm_name": "{{ user `template` }}"
+    }
+  ],
+  "post-processors": [
+    {
+      "output": "{{ user `build_directory` }}/{{user `box_basename`}}.{{.Provider}}.box",
+      "type": "vagrant"
+    }
+  ],
+  "provisioners": [
+    {
+      "scripts": [
+        "{{template_dir}}/scripts/debian9/apt.sh",
+        "{{template_dir}}/scripts/debian9/network.sh"
+      ],
+      "type": "shell",
+      "timeout": "120m",
+      "start_retry_timeout": "45m",
+      "expect_disconnect": "true"
+    },
+    {
+      "scripts": [
+        "{{template_dir}}/scripts/debian9/floppy.sh",
+        "{{template_dir}}/scripts/debian9/profile.sh",
+        "{{template_dir}}/scripts/debian9/vagrant.sh",
+        "{{template_dir}}/scripts/debian9/motd.sh",
+        "{{template_dir}}/scripts/debian9/fixtty.sh",
+        "{{template_dir}}/scripts/debian9/fixuuid.sh",
+        "{{template_dir}}/scripts/debian9/parallels.sh"
+      ],
+      "type": "shell",
+      "timeout": "120m",
+      "pause_before": "120s",
+      "start_retry_timeout": "45m",
+      "expect_disconnect": "true"
+    },
+    {
+      "scripts": [
+        "{{template_dir}}/scripts/common/motd.sh",
+        "{{template_dir}}/scripts/common/keys.sh",
+        "{{template_dir}}/scripts/common/machine.sh",
+        "{{template_dir}}/scripts/common/leases.sh",
+        "{{template_dir}}/scripts/common/localtime.sh",
+        "{{template_dir}}/scripts/common/zerodisk.sh",
+        "{{template_dir}}/scripts/common/lockout.sh"
+      ],
+      "type": "shell",
+      "timeout": "120m",
+      "start_retry_timeout": "45m",
+      "expect_disconnect": "true"
+    }
+  ],
+  "variables": {
+    "box_basename": "debian-9.13",
+    "build_directory": "../../builds",
+    "build_timestamp": "{{isotime \"20060102150405\"}}",
+    "cpus": "2",
+    "disk_size": "32768",
+    "git_revision": "__unknown_git_revision__",
+    "guest_additions_url": "",
+    "headless": "",
+    "http_directory": "{{template_dir}}/http",
+    "http_proxy": "{{env `http_proxy`}}",
+    "https_proxy": "{{env `https_proxy`}}",
+    "iso_checksum": "ea321c9de60a6fe9dfaf438b8e16f1945d6d2239e9f0d3cfe6872d4280eba10c",
+    "iso_name": "debian-9.13.0-arm64-netinst.iso",
+    "memory": "2048",
+    "mirror": "http://cdimage.debian.org/cdimage/archive",
+    "mirror_directory": "9.13.0/arm64/iso-cd",
+    "name": "debian-9.13",
+    "no_proxy": "{{env `no_proxy`}}",
+    "preseed_path": "debian-9/preseed.cfg",
+    "template": "debian-9.13-arm64",
+    "version": "TIMESTAMP"
+  }
+}
