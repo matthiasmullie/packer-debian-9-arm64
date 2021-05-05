@@ -64,7 +64,7 @@
           "on"
         ]
       ],
-      "boot_wait": "60s",
+      "boot_wait": "10s",
       "cpus": "{{ user `cpus` }}",
       "disk_size": "{{user `disk_size`}}",
       "guest_os_type": "debian",
